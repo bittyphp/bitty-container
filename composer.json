@@ -1,6 +1,6 @@
 {
     "name": "bittyphp/bitty-container",
-    "description": "PSR-11 container implementation.",
+    "description": "PSR-11 Container implementation.",
     "type": "library",
     "license": "MIT",
     "authors": [
