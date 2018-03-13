@@ -97,7 +97,7 @@ $container = new Container(
             $myParam   = $container->get('some_parameter');
             $myService = $container->get('my_service');
 
-            return new MyOtherClass(myParam, $myService);
+            return new MyOtherClass($myParam, $myService);
         },
     ]
 );
@@ -113,14 +113,15 @@ Another method is to set services one at a time.
 use Acme\MyClass;
 use Acme\MyOtherClass;
 use Bitty\Container\Container;
+use Psr\Container\ContainerInterface;
 
 $container = new Container();
 
-$container->set('my_service', function ($container) {
+$container->set('my_service', function () {
     return new MyClass();
 });
 
-$container->set('my_other_service', function ($container) {
+$container->set('my_other_service', function (ContainerInterface $container) {
     $myService = $container->get('my_service');
 
     return new MyOtherClass($myService);
