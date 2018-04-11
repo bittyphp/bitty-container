@@ -9,7 +9,7 @@ interface ContainerAwareInterface
     /**
      * Sets the container.
      *
-     * @param PsrContainerInterface $container
+     * @param PsrContainerInterface|null $container
      */
     public function setContainer(PsrContainerInterface $container = null);
 
