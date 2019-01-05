@@ -1,7 +1,7 @@
 {
     "name": "bittyphp/bitty-container",
-    "description": "PSR-11 Container implementation.",
     "type": "library",
+    "description": "PSR-11 Container implementation.",
     "license": "MIT",
     "authors": [
         {
@@ -11,26 +11,26 @@
     ],
     "require": {
         "php": ">=7.1.0",
-        "psr/container": "^1.0",
-        "container-interop/service-provider": "^0.4"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^7.0",
-        "squizlabs/php_codesniffer": "^3.0",
-        "jakub-onderka/php-parallel-lint": "^1.0",
-        "localheinz/composer-normalize": "^1.1",
-        "phpstan/phpstan": "^0.10.7",
-        "phpstan/phpstan-deprecation-rules": "^0.10.2",
-        "phpstan/phpstan-phpunit": "^0.10.0",
-        "phpstan/phpstan-strict-rules": "^0.10.1",
-        "phing/phing": "^2.16"
+        "container-interop/service-provider": "^0.4",
+        "psr/container": "^1.0"
     },
     "provide": {
         "psr/container-implementation": "1.0"
     },
+    "require-dev": {
+        "jakub-onderka/php-parallel-lint": "^1.0",
+        "localheinz/composer-normalize": "^1.1",
+        "phing/phing": "^2.16",
+        "phpstan/phpstan": "^0.10.7",
+        "phpstan/phpstan-deprecation-rules": "^0.10.2",
+        "phpstan/phpstan-phpunit": "^0.10.0",
+        "phpstan/phpstan-strict-rules": "^0.10.1",
+        "phpunit/phpunit": "^7.0",
+        "squizlabs/php_codesniffer": "^3.0"
+    },
     "autoload": {
         "psr-4": {
-            "Bitty\\Container\\" : "src/"
+            "Bitty\\Container\\": "src/"
         }
     },
     "autoload-dev": {
