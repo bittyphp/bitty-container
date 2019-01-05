@@ -3,13 +3,14 @@
 namespace Bitty\Tests\Container;
 
 use Bitty\Container\ContainerAwareTrait;
-use Bitty\Tests\Container\TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 
 class ContainerAwareTraitTest extends TestCase
 {
     /**
-     * @var ContainerAwareTrait
+     * @var ContainerAwareTrait|MockObject
      */
     protected $fixture = null;
 

@@ -6,8 +6,8 @@ use Bitty\Container\Container;
 use Bitty\Container\ContainerAwareInterface;
 use Bitty\Container\ContainerInterface;
 use Bitty\Container\Exception\NotFoundException;
-use Bitty\Tests\Container\TestCase;
 use Interop\Container\ServiceProviderInterface;
+use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface as PsrContainerInterface;
 
 class ContainerTest extends TestCase
@@ -132,7 +132,8 @@ class ContainerTest extends TestCase
         $name = uniqid();
 
         $message = 'Service "'.$name.'" does not exist.';
-        $this->setExpectedException(NotFoundException::class, $message);
+        $this->expectException(NotFoundException::class);
+        $this->expectExceptionMessage($message);
 
         $this->fixture->get($name);
     }
