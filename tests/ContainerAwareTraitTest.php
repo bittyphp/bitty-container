@@ -9,25 +9,18 @@ use Psr\Container\ContainerInterface;
 
 class ContainerAwareTraitTest extends TestCase
 {
-    /**
-     * @var ContainerAwareTrait|MockObject
-     */
-    protected $fixture = null;
-
-    protected function setUp()
-    {
-        parent::setUp();
-
-        $this->fixture = $this->getObjectForTrait(ContainerAwareTrait::class);
-    }
-
-    public function testContainer()
+    public function testContainer(): void
     {
         $container = $this->createMock(ContainerInterface::class);
 
-        $this->fixture->setContainer($container);
-        $actual = $this->fixture->getContainer();
+        /**
+         * @var ContainerAwareTrait
+         */
+        $fixture = $this->getObjectForTrait(ContainerAwareTrait::class);
+        $fixture->setContainer($container);
 
-        $this->assertSame($container, $actual);
+        $actual = $fixture->getContainer();
+
+        self::assertSame($container, $actual);
     }
 }
