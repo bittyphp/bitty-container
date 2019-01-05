@@ -33,7 +33,7 @@ class Container implements ContainerInterface
     /**
      * {@inheritDoc}
      */
-    public function set($id, $callable)
+    public function set(string $id, callable $callable): void
     {
         if (isset($this->cache[$id])) {
             unset($this->cache[$id]);
@@ -43,15 +43,19 @@ class Container implements ContainerInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @param string $id
+     *
+     * @return bool
      */
-    public function has($id)
+    public function has($id): bool
     {
         return isset($this->callables[$id]);
     }
 
     /**
-     * {@inheritDoc}
+     * @param string $id
+     *
+     * @return mixed
      */
     public function get($id)
     {
@@ -76,7 +80,7 @@ class Container implements ContainerInterface
     /**
      * {@inheritDoc}
      */
-    public function extend($id, $callable)
+    public function extend(string $id, callable $callable): void
     {
         if (!isset($this->callables[$id])) {
             $this->callables[$id] = $callable;
@@ -96,7 +100,7 @@ class Container implements ContainerInterface
     /**
      * {@inheritDoc}
      */
-    public function register(array $providers)
+    public function register(array $providers): void
     {
         foreach ($providers as $provider) {
             $this->callables = array_merge(

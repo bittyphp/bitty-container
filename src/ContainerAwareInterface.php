@@ -11,12 +11,12 @@ interface ContainerAwareInterface
      *
      * @param PsrContainerInterface|null $container
      */
-    public function setContainer(PsrContainerInterface $container = null);
+    public function setContainer(PsrContainerInterface $container = null): void;
 
     /**
      * Gets the container.
      *
-     * @return PsrContainerInterface
+     * @return PsrContainerInterface|null
      */
-    public function getContainer();
+    public function getContainer(): ?PsrContainerInterface;
 }

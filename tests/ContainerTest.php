@@ -6,8 +6,8 @@ use Bitty\Container\Container;
 use Bitty\Container\ContainerAwareInterface;
 use Bitty\Container\ContainerInterface;
 use Bitty\Container\Exception\NotFoundException;
-use Bitty\Tests\Container\TestCase;
 use Interop\Container\ServiceProviderInterface;
+use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface as PsrContainerInterface;
 
 class ContainerTest extends TestCase
@@ -17,32 +17,32 @@ class ContainerTest extends TestCase
      */
     protected $fixture = null;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
         $this->fixture = new Container();
     }
 
-    public function testInstanceOf()
+    public function testInstanceOf(): void
     {
-        $this->assertInstanceOf(ContainerInterface::class, $this->fixture);
-        $this->assertInstanceOf(PsrContainerInterface::class, $this->fixture);
+        self::assertInstanceOf(ContainerInterface::class, $this->fixture);
+        self::assertInstanceOf(PsrContainerInterface::class, $this->fixture);
     }
 
     /**
      * @dataProvider sampleHas
      */
-    public function testHas($callables, $name, $expected)
+    public function testHas(array $callables, string $name, bool $expected): void
     {
         $this->fixture = new Container($callables);
 
         $actual = $this->fixture->has($name);
 
-        $this->assertSame($expected, $actual);
+        self::assertSame($expected, $actual);
     }
 
-    public function sampleHas()
+    public function sampleHas(): array
     {
         $name = uniqid();
 
@@ -66,7 +66,7 @@ class ContainerTest extends TestCase
         ];
     }
 
-    public function testGet()
+    public function testGet(): void
     {
         $name   = uniqid();
         $object = new \stdClass();
@@ -76,10 +76,10 @@ class ContainerTest extends TestCase
 
         $actual = $this->fixture->get($name);
 
-        $this->assertSame($object, $actual);
+        self::assertSame($object, $actual);
     }
 
-    public function testGetCachesValue()
+    public function testGetCachesValue(): void
     {
         $name = uniqid();
         $this->fixture->set($name, function () {
@@ -89,10 +89,10 @@ class ContainerTest extends TestCase
         $actualA = $this->fixture->get($name);
         $actualB = $this->fixture->get($name);
 
-        $this->assertSame($actualA, $actualB);
+        self::assertSame($actualA, $actualB);
     }
 
-    public function testSetResetsCache()
+    public function testSetResetsCache(): void
     {
         $name   = uniqid();
         $object = new \stdClass();
@@ -108,10 +108,10 @@ class ContainerTest extends TestCase
 
         $actualB = $this->fixture->get($name);
 
-        $this->assertNotSame($actualA, $actualB);
+        self::assertNotSame($actualA, $actualB);
     }
 
-    public function testGetSetsContainerOnContainerAwareService()
+    public function testGetSetsContainerOnContainerAwareService(): void
     {
         $name    = uniqid();
         $service = $this->createMock(ContainerAwareInterface::class);
@@ -120,24 +120,25 @@ class ContainerTest extends TestCase
             return $service;
         });
 
-        $service->expects($this->once())
+        $service->expects(self::once())
             ->method('setContainer')
             ->with($this->fixture);
 
         $this->fixture->get($name);
     }
 
-    public function testGetThrowsException()
+    public function testGetThrowsException(): void
     {
         $name = uniqid();
 
         $message = 'Service "'.$name.'" does not exist.';
-        $this->setExpectedException(NotFoundException::class, $message);
+        $this->expectException(NotFoundException::class);
+        $this->expectExceptionMessage($message);
 
         $this->fixture->get($name);
     }
 
-    public function testExtendNonExistentId()
+    public function testExtendNonExistentId(): void
     {
         $name   = uniqid();
         $object = new \stdClass();
@@ -145,7 +146,7 @@ class ContainerTest extends TestCase
         $this->fixture->extend(
             $name,
             function (PsrContainerInterface $container, $previous = null) use ($object) {
-                $this->assertNull($previous);
+                self::assertNull($previous);
 
                 return $object;
             }
@@ -153,10 +154,10 @@ class ContainerTest extends TestCase
 
         $actual = $this->fixture->get($name);
 
-        $this->assertSame($object, $actual);
+        self::assertSame($object, $actual);
     }
 
-    public function testExtendExistingId()
+    public function testExtendExistingId(): void
     {
         $name    = uniqid();
         $objectA = new \stdClass();
@@ -169,7 +170,7 @@ class ContainerTest extends TestCase
         $this->fixture->extend(
             $name,
             function (PsrContainerInterface $container, $previous = null) use ($objectA, $objectB) {
-                $this->assertSame($objectA, $previous);
+                self::assertSame($objectA, $previous);
 
                 return $objectB;
             }
@@ -177,17 +178,21 @@ class ContainerTest extends TestCase
 
         $actual = $this->fixture->get($name);
 
-        $this->assertSame($objectB, $actual);
+        self::assertSame($objectB, $actual);
     }
 
-    public function testRegisterNoProviders()
+    public function testRegisterNoProviders(): void
     {
-        $actual = $this->fixture->register([]);
+        try {
+            $this->fixture->register([]);
+        } catch (\Exception $e) {
+            self::fail();
+        }
 
-        $this->assertNull($actual);
+        self::assertTrue(true);
     }
 
-    public function testRegisterSingleProviderMultipleFactories()
+    public function testRegisterSingleProviderMultipleFactories(): void
     {
         $nameA   = uniqid();
         $nameB   = uniqid();
@@ -214,11 +219,11 @@ class ContainerTest extends TestCase
         $actualA = $this->fixture->get($nameA);
         $actualB = $this->fixture->get($nameB);
 
-        $this->assertSame($objectA, $actualA);
-        $this->assertSame($objectB, $actualB);
+        self::assertSame($objectA, $actualA);
+        self::assertSame($objectB, $actualB);
     }
 
-    public function testRegisterSingleProviderMultipleExtensions()
+    public function testRegisterSingleProviderMultipleExtensions(): void
     {
         $nameA   = uniqid();
         $nameB   = uniqid();
@@ -235,12 +240,12 @@ class ContainerTest extends TestCase
                 'getFactories' => [],
                 'getExtensions' => [
                     $nameA => function (PsrContainerInterface $container, $previous = null) use ($objectA, $objectB) {
-                        $this->assertSame($objectB, $previous);
+                        self::assertSame($objectB, $previous);
 
                         return $objectA;
                     },
                     $nameB => function (PsrContainerInterface $container, $previous = null) use ($objectB) {
-                        $this->assertNull($previous);
+                        self::assertNull($previous);
 
                         return $objectB;
                     },
@@ -253,11 +258,11 @@ class ContainerTest extends TestCase
         $actualA = $this->fixture->get($nameA);
         $actualB = $this->fixture->get($nameB);
 
-        $this->assertSame($objectA, $actualA);
-        $this->assertSame($objectB, $actualB);
+        self::assertSame($objectA, $actualA);
+        self::assertSame($objectB, $actualB);
     }
 
-    public function testRegisterMultipleProvidersMultipleFactories()
+    public function testRegisterMultipleProvidersMultipleFactories(): void
     {
         $nameA   = uniqid();
         $nameB   = uniqid();
@@ -303,12 +308,12 @@ class ContainerTest extends TestCase
         $actualB = $this->fixture->get($nameB);
         $actualC = $this->fixture->get($nameC);
 
-        $this->assertSame($objectA, $actualA);
-        $this->assertSame($objectD, $actualB);
-        $this->assertSame($objectC, $actualC);
+        self::assertSame($objectA, $actualA);
+        self::assertSame($objectD, $actualB);
+        self::assertSame($objectC, $actualC);
     }
 
-    public function testRegisterMultipleProvidersMultipleExtensions()
+    public function testRegisterMultipleProvidersMultipleExtensions(): void
     {
         $nameA   = uniqid();
         $nameB   = uniqid();
@@ -327,7 +332,7 @@ class ContainerTest extends TestCase
                 ],
                 'getExtensions' => [
                     $nameB => function (PsrContainerInterface $container, $previous = null) use ($objectB) {
-                        $this->assertNull($previous);
+                        self::assertNull($previous);
 
                         return $objectB;
                     },
@@ -341,12 +346,12 @@ class ContainerTest extends TestCase
                 'getFactories' => [],
                 'getExtensions' => [
                     $nameA => function (PsrContainerInterface $container, $previous = null) use ($objectA, $objectC) {
-                        $this->assertSame($objectA, $previous);
+                        self::assertSame($objectA, $previous);
 
                         return $objectC;
                     },
                     $nameB => function (PsrContainerInterface $container, $previous = null) use ($objectB, $objectD) {
-                        $this->assertSame($objectB, $previous);
+                        self::assertSame($objectB, $previous);
 
                         return $objectD;
                     },
@@ -359,7 +364,7 @@ class ContainerTest extends TestCase
         $actualA = $this->fixture->get($nameA);
         $actualB = $this->fixture->get($nameB);
 
-        $this->assertSame($objectC, $actualA);
-        $this->assertSame($objectD, $actualB);
+        self::assertSame($objectC, $actualA);
+        self::assertSame($objectD, $actualB);
     }
 }

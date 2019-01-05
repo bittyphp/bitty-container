@@ -13,7 +13,7 @@ interface ContainerInterface extends PsrContainerInterface
      * @param string $id ID of service to build.
      * @param callable $callable Callable to build the service.
      */
-    public function set($id, $callable);
+    public function set(string $id, callable $callable): void;
 
     /**
      * Extends a callable.
@@ -21,12 +21,12 @@ interface ContainerInterface extends PsrContainerInterface
      * @param string $id
      * @param callable $callable
      */
-    public function extend($id, $callable);
+    public function extend(string $id, callable $callable): void;
 
     /**
      * Registers a list of service providers.
      *
      * @param ServiceProviderInterface[] $providers
      */
-    public function register(array $providers);
+    public function register(array $providers): void;
 }

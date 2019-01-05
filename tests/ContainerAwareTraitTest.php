@@ -3,30 +3,24 @@
 namespace Bitty\Tests\Container;
 
 use Bitty\Container\ContainerAwareTrait;
-use Bitty\Tests\Container\TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 
 class ContainerAwareTraitTest extends TestCase
 {
-    /**
-     * @var ContainerAwareTrait
-     */
-    protected $fixture = null;
-
-    protected function setUp()
-    {
-        parent::setUp();
-
-        $this->fixture = $this->getObjectForTrait(ContainerAwareTrait::class);
-    }
-
-    public function testContainer()
+    public function testContainer(): void
     {
         $container = $this->createMock(ContainerInterface::class);
 
-        $this->fixture->setContainer($container);
-        $actual = $this->fixture->getContainer();
+        /**
+         * @var ContainerAwareTrait
+         */
+        $fixture = $this->getObjectForTrait(ContainerAwareTrait::class);
+        $fixture->setContainer($container);
 
-        $this->assertSame($container, $actual);
+        $actual = $fixture->getContainer();
+
+        self::assertSame($container, $actual);
     }
 }
