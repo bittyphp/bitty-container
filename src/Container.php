@@ -22,6 +22,14 @@ class Container implements ContainerInterface, \ArrayAccess
     protected $cache = [];
 
     /**
+     * @param mixed[] $data
+     */
+    public function __construct(array $data = [])
+    {
+        $this->data = $data;
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function set(string $id, $value): void

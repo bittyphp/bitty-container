@@ -41,9 +41,7 @@ class ContainerTest extends TestCase
      */
     public function testHas(array $callables, string $name, bool $expected): void
     {
-        foreach ($callables as $id => $callable) {
-            $this->fixture->set($id, $callable);
-        }
+        $this->fixture = new Container($callables);
 
         $actual = $this->fixture->has($name);
 
@@ -59,9 +57,7 @@ class ContainerTest extends TestCase
      */
     public function testOffsetExists(array $callables, string $name, bool $expected): void
     {
-        foreach ($callables as $id => $callable) {
-            $this->fixture->set($id, $callable);
-        }
+        $this->fixture = new Container($callables);
 
         $actual = $this->fixture->offsetExists($name);
 

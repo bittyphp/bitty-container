@@ -55,7 +55,7 @@ $someThing = $container['some_thing'];
 
 ## Adding an Entry
 
-You can add entries to Bitty's container one of two ways: via the container `set` method or via a service provider.
+You can add entries to Bitty's container one of few ways: via the constructor, the `set` method, or via a service provider.
 
 The container is set up to support adding both services and parameters. All services must be built using an anonymous function (a `\Closure`). Any other value will be considered a parameter.
 
@@ -82,9 +82,40 @@ $parameter = function () {
 };
 ```
 
+### Via the Constructor
+
+The most direct way to add entries is by passing them all in when you build the container. However, this is probably not the most practical way to do things. The array key is the entry name and the value is an anonymous function that builds the thing you want to access.
+
+```php
+<?php
+
+use Acme\MyClass;
+use Acme\MyOtherClass;
+use Bitty\Container\Container;
+use Psr\Container\ContainerInterface;
+
+$container = new Container(
+    [
+        // Adding a parameter
+        'some_parameter' => 'i-need-this-value',
+
+        // Adding services
+        'my_service' => function () {
+            return new MyClass();
+        },
+        'my_other_service' => function (ContainerInterface $container) {
+            $myParam   = $container->get('some_parameter');
+            $myService = $container->get('my_service');
+
+            return new MyOtherClass($myParam, $myService);
+        },
+    ]
+);
+```
+
 ### Via a Setter
 
-Set services and parameters directly on the container.
+Another method is to set services one at a time.
 
 ```php
 <?php
@@ -117,7 +148,7 @@ $container['some_parameter'] = 'some value';
 
 ### Via a Service Provider
 
-The more extensible option is to build a service provider using  `Interop\Container\ServiceProviderInterface` and register it using the `register()` method.
+The last, and most extensible, option is to build a service provider using  `Interop\Container\ServiceProviderInterface` and register it using the `register()` method.
 
 You can build a service provider to load service settings from anywhere - an XML file, YAML file, or maybe even JSON. More information is available in the Service Provider section.
 
