@@ -24,9 +24,14 @@ If needed, you can check if a container entry exists before requesting the conta
 
 use Bitty\Container\Container;
 
-$container = new Container(...);
+$container = new Container();
 
 if ($container->has('some_thing')) {
+    echo 'some_thing is available';
+}
+
+// Or use array access
+if (isset($container['some_thing'])) {
     echo 'some_thing is available';
 }
 ```
@@ -40,14 +45,21 @@ Getting an entry from the container is also easy. However, if the entry doesn't 
 
 use Bitty\Container\Container;
 
-$container = new Container(...);
+$container = new Container();
 
 $someThing = $container->get('some_thing');
+
+// Or use array access
+$someThing = $container['some_thing'];
 ```
 
 ## Adding an Entry
 
-You can add entries to Bitty's container a few different ways. All entries are adding using anonymous functions. When you first request an entry from the container, it calls the anonymous function and caches the result. The result can be anything - a string, an array, an object - you name it. On subsequent calls, you are given the same value each time.
+You can add entries to Bitty's container one of two ways: via the container `set` method or via a service provider.
+
+The container is set up to support adding both services and parameters. All services must be built using an anonymous function (a `\Closure`). Any other value will be considered a parameter.
+
+When you first request a service from the container, it calls the anonymous function and caches the result. The result can be anything - a string, an array, an object - you name it. On subsequent calls, you are given the same value each time.
 
 The function will always be called with the container itself as the first argument. This allows you to reference other items from the container, if needed. If you do not need access to the container, you can omit the parameter from the function signature.
 
@@ -70,42 +82,9 @@ $parameter = function () {
 };
 ```
 
-### Via the Constructor
-
-The most direct way to add entries is by passing them all in when you build the container. However, this is probably not the most practical way to do things. The array key is the entry name and the value is an anonymous function that builds the thing you want to access.
-
-```php
-<?php
-
-use Acme\MyClass;
-use Acme\MyOtherClass;
-use Bitty\Container\Container;
-use Psr\Container\ContainerInterface;
-
-$container = new Container(
-    [
-        // Adding a parameter
-        'some_parameter' => function () {
-            return 'i-need-this-value';
-        },
-
-        // Adding services
-        'my_service' => function () {
-            return new MyClass();
-        },
-        'my_other_service' => function (ContainerInterface $container) {
-            $myParam   = $container->get('some_parameter');
-            $myService = $container->get('my_service');
-
-            return new MyOtherClass($myParam, $myService);
-        },
-    ]
-);
-```
-
 ### Via a Setter
 
-Another method is to set services one at a time.
+Set services and parameters directly on the container.
 
 ```php
 <?php
@@ -126,11 +105,19 @@ $container->set('my_other_service', function (ContainerInterface $container) {
 
     return new MyOtherClass($myService);
 });
+
+$container->set('my_parameter', 'some value');
+
+// Or use array access
+$container['some_service'] = function () {
+    return new MyClass();
+};
+$container['some_parameter'] = 'some value';
 ```
 
 ### Via a Service Provider
 
-The last, and most extensible, option is to build a service provider using  `Interop\Container\ServiceProviderInterface` and pass it to the container or late register it using the `register()` method.
+The more extensible option is to build a service provider using  `Interop\Container\ServiceProviderInterface` and register it using the `register()` method.
 
 You can build a service provider to load service settings from anywhere - an XML file, YAML file, or maybe even JSON. More information is available in the Service Provider section.
 
@@ -202,7 +189,7 @@ class MyServiceProvider implements ServiceProviderInterface
 }
 ```
 
-Then pass your provider(s) into the container.
+Then register your provider with the container.
 
 ```php
 <?php
@@ -210,24 +197,9 @@ Then pass your provider(s) into the container.
 use Acme\MyServiceProvider;
 use Bitty\Container\Container;
 
-// Pass in via the constructor
-$container = new Container(
-    [
-        // Services not built by the provider
-    ],
-    [
-        new MyServiceProvider(),
-        // ...
-    ]
-);
+$container = new Container();
 
-// Or call Container::register() directly
-$container->register(
-    [
-        new MyServiceProvider(),
-        // ...
-    ]
-);
+$container->register(new MyServiceProvider());
 ```
 
 ## Making Container Aware Services
