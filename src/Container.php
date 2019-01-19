@@ -4,16 +4,17 @@ namespace Bitty\Container;
 
 use Bitty\Container\ContainerAwareInterface;
 use Bitty\Container\ContainerInterface;
+use Bitty\Container\Exception\InvalidArgumentException;
 use Bitty\Container\Exception\NotFoundException;
 use Interop\Container\ServiceProviderInterface;
 use Psr\Container\ContainerInterface as PsrContainerInterface;
 
-class Container implements ContainerInterface
+class Container implements ContainerInterface, \ArrayAccess
 {
     /**
-     * @var callable[]
+     * @var mixed[]
      */
-    protected $callables = [];
+    protected $data = [];
 
     /**
      * @var mixed[]
@@ -21,25 +22,23 @@ class Container implements ContainerInterface
     protected $cache = [];
 
     /**
-     * @param callable[] $callables
-     * @param ServiceProviderInterface[] $providers
+     * @param mixed[] $data
      */
-    public function __construct(array $callables = [], array $providers = [])
+    public function __construct(array $data = [])
     {
-        $this->callables = $callables;
-        $this->register($providers);
+        $this->data = $data;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function set(string $id, callable $callable): void
+    public function set(string $id, $value): void
     {
         if (isset($this->cache[$id])) {
             unset($this->cache[$id]);
         }
 
-        $this->callables[$id] = $callable;
+        $this->data[$id] = $value;
     }
 
     /**
@@ -49,7 +48,7 @@ class Container implements ContainerInterface
      */
     public function has($id): bool
     {
-        return isset($this->callables[$id]);
+        return isset($this->data[$id]);
     }
 
     /**
@@ -63,57 +62,129 @@ class Container implements ContainerInterface
             return $this->cache[$id];
         }
 
-        if (isset($this->callables[$id])) {
-            $this->cache[$id] = $this->callables[$id]($this);
-            if ($this->cache[$id] instanceof ContainerAwareInterface) {
-                $this->cache[$id]->setContainer($this);
-            }
-
-            return $this->cache[$id];
+        if (!isset($this->data[$id])) {
+            throw new NotFoundException(
+                sprintf('Container entry "%s" not found.', $id)
+            );
         }
 
-        throw new NotFoundException(
-            sprintf('Service "%s" does not exist.', $id)
-        );
+        $value = $this->data[$id];
+        if (!$value instanceof \Closure) {
+            return $value;
+        }
+
+        $this->cache[$id] = $value($this);
+        if ($this->cache[$id] instanceof ContainerAwareInterface) {
+            $this->cache[$id]->setContainer($this);
+        }
+
+        return $this->cache[$id];
     }
 
     /**
      * {@inheritDoc}
      */
-    public function extend(string $id, callable $callable): void
+    public function remove(string $id): void
     {
-        if (!isset($this->callables[$id])) {
-            $this->callables[$id] = $callable;
+        if (!isset($this->data[$id])) {
+            return;
+        }
+
+        unset($this->data[$id]);
+
+        if (isset($this->cache[$id])) {
+            unset($this->cache[$id]);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function extend(string $id, \Closure $closure): void
+    {
+        if (!isset($this->data[$id])) {
+            $this->data[$id] = $closure;
 
             return;
         }
 
-        $factory = $this->callables[$id];
+        $factory = $this->data[$id];
+        if (!$factory instanceof \Closure) {
+            throw new InvalidArgumentException(
+                sprintf(
+                    'Container entry "%s" is a parameter; it cannot be extended.',
+                    $id
+                )
+            );
+        }
 
-        $this->callables[$id] = function (PsrContainerInterface $container) use ($factory, $callable) {
+        $this->data[$id] = function (PsrContainerInterface $container) use ($factory, $closure) {
             $previous = $factory($container);
 
-            return $callable($container, $previous);
+            return $closure($container, $previous);
         };
     }
 
     /**
      * {@inheritDoc}
      */
-    public function register(array $providers): void
+    public function register(ServiceProviderInterface $provider): void
     {
-        foreach ($providers as $provider) {
-            $this->callables = array_merge(
-                $this->callables,
-                $provider->getFactories()
-            );
-        }
+        $this->data = array_merge(
+            $this->data,
+            $provider->getFactories()
+        );
 
-        foreach ($providers as $provider) {
-            $extensions = $provider->getExtensions();
-            foreach ($extensions as $id => $extension) {
+        $extensions = $provider->getExtensions();
+        foreach ($extensions as $id => $extension) {
+            if ($extension instanceof \Closure) {
                 $this->extend($id, $extension);
             }
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @param string $offset
+     * @param mixed $value
+     */
+    public function offsetSet($offset, $value): void
+    {
+        $this->set($offset, $value);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @param string $offset
+     *
+     * @return bool
+     */
+    public function offsetExists($offset): bool
+    {
+        return $this->has($offset);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @param string $offset
+     *
+     * @return mixed
+     */
+    public function offsetGet($offset)
+    {
+        return $this->get($offset);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @param string $offset
+     */
+    public function offsetUnset($offset): void
+    {
+        $this->remove($offset);
     }
 }
