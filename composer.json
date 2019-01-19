@@ -1,5 +1,5 @@
 {
-    "name": "bittyphp/bitty-container",
+    "name": "bittyphp/container",
     "type": "library",
     "description": "PSR-11 Container implementation.",
     "license": "MIT",

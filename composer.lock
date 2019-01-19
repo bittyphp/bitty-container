@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "aecac1745bd606dac1b8c8d1c155e0d9",
+    "content-hash": "780a88e6525f528dc2bf813add25e6f8",
     "packages": [
         {
             "name": "container-interop/service-provider",
@@ -3195,7 +3195,7 @@
                 },
                 {
                     "name": "Gert de Pagter",
-                    "email": "BackEndTea@gmail.com"
+                    "email": "backendtea@gmail.com"
                 }
             ],
             "description": "Symfony polyfill for ctype functions",

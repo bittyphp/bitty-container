@@ -1,9 +1,9 @@
 # Bitty Container
 
-[![Build Status](https://travis-ci.org/bittyphp/bitty-container.svg?branch=master)](https://travis-ci.org/bittyphp/bitty-container)
-[![Codacy Badge](https://api.codacy.com/project/badge/Coverage/de162d6c119b48d3bf72bc7d93ecb2d9)](https://www.codacy.com/app/bittyphp/bitty-container)
-[![Total Downloads](https://poser.pugx.org/bittyphp/bitty-container/downloads)](https://packagist.org/packages/bittyphp/bitty-container)
-[![License](https://poser.pugx.org/bittyphp/bitty-container/license)](https://packagist.org/packages/bittyphp/bitty-container)
+[![Build Status](https://travis-ci.org/bittyphp/container.svg?branch=master)](https://travis-ci.org/bittyphp/container)
+[![Codacy Badge](https://api.codacy.com/project/badge/Coverage/de162d6c119b48d3bf72bc7d93ecb2d9)](https://www.codacy.com/app/bittyphp/container)
+[![Total Downloads](https://poser.pugx.org/bittyphp/container/downloads)](https://packagist.org/packages/bittyphp/container)
+[![License](https://poser.pugx.org/bittyphp/container/license)](https://packagist.org/packages/bittyphp/container)
 
 Bitty comes with a [PSR-11](http://www.php-fig.org/psr/psr-11/) compliant container. The container supports registering service providers that follow the (experimental) [service provider standard](https://github.com/container-interop/service-provider).
 
@@ -12,7 +12,7 @@ Bitty comes with a [PSR-11](http://www.php-fig.org/psr/psr-11/) compliant contai
 It's best to install using [Composer](https://getcomposer.org/).
 
 ```sh
-$ composer require bittyphp/bitty-container
+$ composer require bittyphp/container
 ```
 
 ## Checking for an Entry
