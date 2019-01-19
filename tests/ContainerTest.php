@@ -28,9 +28,14 @@ class ContainerTest extends TestCase
     {
         self::assertInstanceOf(ContainerInterface::class, $this->fixture);
         self::assertInstanceOf(PsrContainerInterface::class, $this->fixture);
+        self::assertInstanceOf(\ArrayAccess::class, $this->fixture);
     }
 
     /**
+     * @param array $callables
+     * @param string $name
+     * @param bool $expected
+     *
      * @dataProvider sampleHas
      */
     public function testHas(array $callables, string $name, bool $expected): void
@@ -38,6 +43,22 @@ class ContainerTest extends TestCase
         $this->fixture = new Container($callables);
 
         $actual = $this->fixture->has($name);
+
+        self::assertSame($expected, $actual);
+    }
+
+    /**
+     * @param array $callables
+     * @param string $name
+     * @param bool $expected
+     *
+     * @dataProvider sampleHas
+     */
+    public function testOffsetExists(array $callables, string $name, bool $expected): void
+    {
+        $this->fixture = new Container($callables);
+
+        $actual = $this->fixture->offsetExists($name);
 
         self::assertSame($expected, $actual);
     }
@@ -79,6 +100,19 @@ class ContainerTest extends TestCase
         self::assertSame($object, $actual);
     }
 
+    public function testOffsetGet(): void
+    {
+        $name   = uniqid();
+        $object = new \stdClass();
+        $this->fixture->offsetSet($name, function () use ($object) {
+            return $object;
+        });
+
+        $actual = $this->fixture->offsetGet($name);
+
+        self::assertSame($object, $actual);
+    }
+
     public function testGetCachesValue(): void
     {
         $name = uniqid();
@@ -88,6 +122,19 @@ class ContainerTest extends TestCase
 
         $actualA = $this->fixture->get($name);
         $actualB = $this->fixture->get($name);
+
+        self::assertSame($actualA, $actualB);
+    }
+
+    public function testOffsetGetCachesValue(): void
+    {
+        $name = uniqid();
+        $this->fixture->offsetSet($name, function () {
+            return new \stdClass();
+        });
+
+        $actualA = $this->fixture->offsetGet($name);
+        $actualB = $this->fixture->offsetGet($name);
 
         self::assertSame($actualA, $actualB);
     }
@@ -111,6 +158,25 @@ class ContainerTest extends TestCase
         self::assertNotSame($actualA, $actualB);
     }
 
+    public function testOffsetSetResetsCache(): void
+    {
+        $name = uniqid();
+
+        $this->fixture->offsetSet($name, function () {
+            return new \stdClass();
+        });
+
+        $actualA = $this->fixture->offsetGet($name);
+
+        $this->fixture->offsetSet($name, function () {
+            return new \stdClass();
+        });
+
+        $actualB = $this->fixture->offsetGet($name);
+
+        self::assertNotSame($actualA, $actualB);
+    }
+
     public function testGetSetsContainerOnContainerAwareService(): void
     {
         $name    = uniqid();
@@ -127,6 +193,22 @@ class ContainerTest extends TestCase
         $this->fixture->get($name);
     }
 
+    public function testOffsetGetSetsContainerOnContainerAwareService(): void
+    {
+        $name    = uniqid();
+        $service = $this->createMock(ContainerAwareInterface::class);
+
+        $this->fixture->offsetSet($name, function () use ($service) {
+            return $service;
+        });
+
+        $service->expects(self::once())
+            ->method('setContainer')
+            ->with($this->fixture);
+
+        $this->fixture->offsetGet($name);
+    }
+
     public function testGetThrowsException(): void
     {
         $name = uniqid();
@@ -136,6 +218,17 @@ class ContainerTest extends TestCase
         $this->expectExceptionMessage($message);
 
         $this->fixture->get($name);
+    }
+
+    public function testOffsetGetThrowsException(): void
+    {
+        $name = uniqid();
+
+        $message = 'Service "'.$name.'" does not exist.';
+        $this->expectException(NotFoundException::class);
+        $this->expectExceptionMessage($message);
+
+        $this->fixture->offsetGet($name);
     }
 
     public function testRemove(): void
@@ -149,6 +242,21 @@ class ContainerTest extends TestCase
         $this->fixture->remove($name);
 
         $actual = $this->fixture->has($name);
+
+        self::assertFalse($actual);
+    }
+
+    public function testOffsetUnset(): void
+    {
+        $name = uniqid();
+        $this->fixture->offsetSet($name, function () {
+            return new \stdClass();
+        });
+
+        $this->fixture->offsetGet($name);
+        $this->fixture->offsetUnset($name);
+
+        $actual = $this->fixture->offsetExists($name);
 
         self::assertFalse($actual);
     }

@@ -8,7 +8,7 @@ use Bitty\Container\Exception\NotFoundException;
 use Interop\Container\ServiceProviderInterface;
 use Psr\Container\ContainerInterface as PsrContainerInterface;
 
-class Container implements ContainerInterface
+class Container implements ContainerInterface, \ArrayAccess
 {
     /**
      * @var callable[]
@@ -131,5 +131,50 @@ class Container implements ContainerInterface
                 $this->extend($id, $extension);
             }
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @param string $offset
+     * @param callable $value
+     */
+    public function offsetSet($offset, $value): void
+    {
+        $this->set($offset, $value);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @param string $offset
+     *
+     * @return bool
+     */
+    public function offsetExists($offset): bool
+    {
+        return $this->has($offset);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @param string $offset
+     *
+     * @return mixed
+     */
+    public function offsetGet($offset)
+    {
+        return $this->get($offset);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @param string $offset
+     */
+    public function offsetUnset($offset): void
+    {
+        $this->remove($offset);
     }
 }
