@@ -138,6 +138,21 @@ class ContainerTest extends TestCase
         $this->fixture->get($name);
     }
 
+    public function testRemove(): void
+    {
+        $name = uniqid();
+        $this->fixture->set($name, function () {
+            return new \stdClass();
+        });
+
+        $this->fixture->get($name);
+        $this->fixture->remove($name);
+
+        $actual = $this->fixture->has($name);
+
+        self::assertFalse($actual);
+    }
+
     public function testExtendNonExistentId(): void
     {
         $name   = uniqid();

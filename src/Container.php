@@ -80,6 +80,22 @@ class Container implements ContainerInterface
     /**
      * {@inheritDoc}
      */
+    public function remove(string $id): void
+    {
+        if (!isset($this->callables[$id])) {
+            return;
+        }
+
+        unset($this->callables[$id]);
+
+        if (isset($this->cache[$id])) {
+            unset($this->cache[$id]);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function extend(string $id, callable $callable): void
     {
         if (!isset($this->callables[$id])) {

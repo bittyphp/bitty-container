@@ -16,6 +16,13 @@ interface ContainerInterface extends PsrContainerInterface
     public function set(string $id, callable $callable): void;
 
     /**
+     * Removes an entry from the container.
+     *
+     * @param string $id
+     */
+    public function remove(string $id): void;
+
+    /**
      * Extends a callable.
      *
      * @param string $id
