@@ -5,6 +5,7 @@ namespace Bitty\Tests\Container;
 use Bitty\Container\Container;
 use Bitty\Container\ContainerAwareInterface;
 use Bitty\Container\ContainerInterface;
+use Bitty\Container\Exception\InvalidArgumentException;
 use Bitty\Container\Exception\NotFoundException;
 use Interop\Container\ServiceProviderInterface;
 use PHPUnit\Framework\TestCase;
@@ -32,7 +33,7 @@ class ContainerTest extends TestCase
     }
 
     /**
-     * @param array $callables
+     * @param \Closure[] $callables
      * @param string $name
      * @param bool $expected
      *
@@ -40,7 +41,9 @@ class ContainerTest extends TestCase
      */
     public function testHas(array $callables, string $name, bool $expected): void
     {
-        $this->fixture = new Container($callables);
+        foreach ($callables as $id => $callable) {
+            $this->fixture->set($id, $callable);
+        }
 
         $actual = $this->fixture->has($name);
 
@@ -48,7 +51,7 @@ class ContainerTest extends TestCase
     }
 
     /**
-     * @param array $callables
+     * @param \Closure[] $callables
      * @param string $name
      * @param bool $expected
      *
@@ -56,7 +59,9 @@ class ContainerTest extends TestCase
      */
     public function testOffsetExists(array $callables, string $name, bool $expected): void
     {
-        $this->fixture = new Container($callables);
+        foreach ($callables as $id => $callable) {
+            $this->fixture->set($id, $callable);
+        }
 
         $actual = $this->fixture->offsetExists($name);
 
@@ -139,6 +144,88 @@ class ContainerTest extends TestCase
         self::assertSame($actualA, $actualB);
     }
 
+    /**
+     * @param string $id
+     * @param mixed $value
+     * @param mixed $expected
+     *
+     * @dataProvider sampleSet
+     */
+    public function testSet(string $id, $value, $expected): void
+    {
+        $this->fixture->set($id, $value);
+
+        $actual = $this->fixture->get($id);
+
+        self::assertEquals($expected, $actual);
+    }
+
+    /**
+     * @param string $id
+     * @param mixed $value
+     * @param mixed $expected
+     *
+     * @dataProvider sampleSet
+     */
+    public function testOffsetSet(string $id, $value, $expected): void
+    {
+        $this->fixture->offsetSet($id, $value);
+
+        $actual = $this->fixture->offsetGet($id);
+
+        self::assertEquals($expected, $actual);
+    }
+
+    public function sampleSet(): array
+    {
+        $object = (object) [uniqid('a') => uniqid('b')];
+        $bool   = (bool) rand(0, 1);
+        $int    = rand();
+        $string = uniqid();
+        $float  = pi();
+        $array  = [uniqid()];
+
+        return [
+            'closure' => [
+                'id' => uniqid(),
+                'value' => function () use ($object) {
+                    return $object;
+                },
+                'expected' => $object,
+            ],
+            'bool' => [
+                'id' => uniqid(),
+                'value' => $bool,
+                'expected' => $bool,
+            ],
+            'int' => [
+                'id' => uniqid(),
+                'value' => $int,
+                'expected' => $int,
+            ],
+            'string' => [
+                'id' => uniqid(),
+                'value' => $string,
+                'expected' => $string,
+            ],
+            'float' => [
+                'id' => uniqid(),
+                'value' => $float,
+                'expected' => $float,
+            ],
+            'array' => [
+                'id' => uniqid(),
+                'value' => $array,
+                'expected' => $array,
+            ],
+            'object' => [
+                'id' => uniqid(),
+                'value' => $object,
+                'expected' => $object,
+            ],
+        ];
+    }
+
     public function testSetResetsCache(): void
     {
         $name   = uniqid();
@@ -213,7 +300,7 @@ class ContainerTest extends TestCase
     {
         $name = uniqid();
 
-        $message = 'Service "'.$name.'" does not exist.';
+        $message = 'Container entry "'.$name.'" not found.';
         $this->expectException(NotFoundException::class);
         $this->expectExceptionMessage($message);
 
@@ -224,7 +311,7 @@ class ContainerTest extends TestCase
     {
         $name = uniqid();
 
-        $message = 'Service "'.$name.'" does not exist.';
+        $message = 'Container entry "'.$name.'" not found.';
         $this->expectException(NotFoundException::class);
         $this->expectExceptionMessage($message);
 
@@ -304,15 +391,22 @@ class ContainerTest extends TestCase
         self::assertSame($objectB, $actual);
     }
 
-    public function testRegisterNoProviders(): void
+    public function testExtendParameter(): void
     {
-        try {
-            $this->fixture->register([]);
-        } catch (\Exception $e) {
-            self::fail();
-        }
+        $name = uniqid();
 
-        self::assertTrue(true);
+        $this->fixture->set($name, uniqid());
+
+        self::expectException(InvalidArgumentException::class);
+        self::expectExceptionMessage(
+            'Container entry "'.$name.'" is a parameter; it cannot be extended.'
+        );
+
+        $this->fixture->extend(
+            $name,
+            function () {
+            }
+        );
     }
 
     public function testRegisterSingleProviderMultipleFactories(): void
@@ -337,7 +431,7 @@ class ContainerTest extends TestCase
             ]
         );
 
-        $this->fixture->register([$provider]);
+        $this->fixture->register($provider);
 
         $actualA = $this->fixture->get($nameA);
         $actualB = $this->fixture->get($nameB);
@@ -372,122 +466,17 @@ class ContainerTest extends TestCase
 
                         return $objectB;
                     },
+                    uniqid() => uniqid(),
                 ],
             ]
         );
 
-        $this->fixture->register([$provider]);
+        $this->fixture->register($provider);
 
         $actualA = $this->fixture->get($nameA);
         $actualB = $this->fixture->get($nameB);
 
         self::assertSame($objectA, $actualA);
         self::assertSame($objectB, $actualB);
-    }
-
-    public function testRegisterMultipleProvidersMultipleFactories(): void
-    {
-        $nameA   = uniqid();
-        $nameB   = uniqid();
-        $nameC   = uniqid();
-        $objectA = new \stdClass();
-        $objectB = new \stdClass();
-        $objectC = new \stdClass();
-        $objectD = new \stdClass();
-
-        $providerA = $this->createConfiguredMock(
-            ServiceProviderInterface::class,
-            [
-                'getFactories' => [
-                    $nameA => function (PsrContainerInterface $container) use ($objectA) {
-                        return $objectA;
-                    },
-                    $nameB => function (PsrContainerInterface $container) use ($objectB) {
-                        return $objectB;
-                    },
-                ],
-                'getExtensions' => [],
-            ]
-        );
-
-        $providerB = $this->createConfiguredMock(
-            ServiceProviderInterface::class,
-            [
-                'getFactories' => [
-                    $nameC => function (PsrContainerInterface $container) use ($objectC) {
-                        return $objectC;
-                    },
-                    $nameB => function (PsrContainerInterface $container) use ($objectD) {
-                        return $objectD;
-                    },
-                ],
-                'getExtensions' => [],
-            ]
-        );
-
-        $this->fixture->register([$providerA, $providerB]);
-
-        $actualA = $this->fixture->get($nameA);
-        $actualB = $this->fixture->get($nameB);
-        $actualC = $this->fixture->get($nameC);
-
-        self::assertSame($objectA, $actualA);
-        self::assertSame($objectD, $actualB);
-        self::assertSame($objectC, $actualC);
-    }
-
-    public function testRegisterMultipleProvidersMultipleExtensions(): void
-    {
-        $nameA   = uniqid();
-        $nameB   = uniqid();
-        $objectA = new \stdClass();
-        $objectB = new \stdClass();
-        $objectC = new \stdClass();
-        $objectD = new \stdClass();
-
-        $providerA = $this->createConfiguredMock(
-            ServiceProviderInterface::class,
-            [
-                'getFactories' => [
-                    $nameA => function (PsrContainerInterface $container) use ($objectA) {
-                        return $objectA;
-                    },
-                ],
-                'getExtensions' => [
-                    $nameB => function (PsrContainerInterface $container, $previous = null) use ($objectB) {
-                        self::assertNull($previous);
-
-                        return $objectB;
-                    },
-                ],
-            ]
-        );
-
-        $providerB = $this->createConfiguredMock(
-            ServiceProviderInterface::class,
-            [
-                'getFactories' => [],
-                'getExtensions' => [
-                    $nameA => function (PsrContainerInterface $container, $previous = null) use ($objectA, $objectC) {
-                        self::assertSame($objectA, $previous);
-
-                        return $objectC;
-                    },
-                    $nameB => function (PsrContainerInterface $container, $previous = null) use ($objectB, $objectD) {
-                        self::assertSame($objectB, $previous);
-
-                        return $objectD;
-                    },
-                ],
-            ]
-        );
-
-        $this->fixture->register([$providerA, $providerB]);
-
-        $actualA = $this->fixture->get($nameA);
-        $actualB = $this->fixture->get($nameB);
-
-        self::assertSame($objectC, $actualA);
-        self::assertSame($objectD, $actualB);
     }
 }
