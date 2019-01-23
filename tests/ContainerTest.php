@@ -329,6 +329,17 @@ class ContainerTest extends TestCase
         self::assertFalse($actual);
     }
 
+    public function testRemoveNonExistentService(): void
+    {
+        try {
+            $this->fixture->remove(uniqid());
+        } catch (\Exception $e) {
+            self::fail($e->getMessage());
+        }
+
+        self::assertTrue(true);
+    }
+
     public function testOffsetUnset(): void
     {
         $name = uniqid();
