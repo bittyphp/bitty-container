@@ -14,12 +14,12 @@ class Container implements ContainerInterface, \ArrayAccess
     /**
      * @var mixed[]
      */
-    protected $data = [];
+    private $data = [];
 
     /**
      * @var mixed[]
      */
-    protected $cache = [];
+    private $cache = [];
 
     /**
      * @param mixed[] $data

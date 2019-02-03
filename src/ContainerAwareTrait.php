@@ -9,7 +9,7 @@ trait ContainerAwareTrait
     /**
      * @var PsrContainerInterface|null
      */
-    protected $container = null;
+    private $container = null;
 
     /**
      * {@inheritDoc}

@@ -16,7 +16,7 @@ class ContainerTest extends TestCase
     /**
      * @var Container
      */
-    protected $fixture = null;
+    private $fixture = null;
 
     protected function setUp(): void
     {
