@@ -324,9 +324,11 @@ class ContainerTest extends TestCase
         $this->fixture->get($name);
         $this->fixture->remove($name);
 
-        $actual = $this->fixture->has($name);
+        $message = 'Container entry "'.$name.'" not found.';
+        $this->expectException(NotFoundException::class);
+        $this->expectExceptionMessage($message);
 
-        self::assertFalse($actual);
+        $this->fixture->get($name);
     }
 
     public function testRemoveNonExistentService(): void
@@ -473,7 +475,6 @@ class ContainerTest extends TestCase
 
                         return $objectB;
                     },
-                    uniqid() => uniqid(),
                 ],
             ]
         );
@@ -485,5 +486,25 @@ class ContainerTest extends TestCase
 
         self::assertSame($objectA, $actualA);
         self::assertSame($objectB, $actualB);
+    }
+
+    public function testRegisterThrowsException(): void
+    {
+        $name = uniqid();
+
+        $provider = $this->createConfiguredMock(
+            ServiceProviderInterface::class,
+            [
+                'getFactories' => [],
+                'getExtensions' => [
+                    $name => uniqid(),
+                ],
+            ]
+        );
+
+        self::expectException(\InvalidArgumentException::class);
+        self::expectExceptionMessage('Extension for "'.$name.'" must be a Closure; string given.');
+
+        $this->fixture->register($provider);
     }
 }

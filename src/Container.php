@@ -139,8 +139,14 @@ class Container implements ContainerInterface, \ArrayAccess
 
         $extensions = $provider->getExtensions();
         foreach ($extensions as $id => $extension) {
-            if (!($extension instanceof \Closure)) {
-                continue;
+            if (!$extension instanceof \Closure) {
+                throw new \InvalidArgumentException(
+                    sprintf(
+                        'Extension for "%s" must be a Closure; %s given.',
+                        $id,
+                        gettype($extension)
+                    )
+                );
             }
 
             $this->extend($id, $extension);
