@@ -333,7 +333,7 @@ class ContainerTest extends TestCase
     {
         try {
             $this->fixture->remove(uniqid());
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             self::fail($e->getMessage());
         }
 

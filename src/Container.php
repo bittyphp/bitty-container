@@ -92,9 +92,11 @@ class Container implements ContainerInterface, \ArrayAccess
 
         unset($this->data[$id]);
 
-        if (isset($this->cache[$id])) {
-            unset($this->cache[$id]);
+        if (!isset($this->cache[$id])) {
+            return;
         }
+
+        unset($this->cache[$id]);
     }
 
     /**
@@ -137,9 +139,11 @@ class Container implements ContainerInterface, \ArrayAccess
 
         $extensions = $provider->getExtensions();
         foreach ($extensions as $id => $extension) {
-            if ($extension instanceof \Closure) {
-                $this->extend($id, $extension);
+            if (!($extension instanceof \Closure)) {
+                continue;
             }
+
+            $this->extend($id, $extension);
         }
     }
 
