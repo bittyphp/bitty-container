@@ -331,6 +331,22 @@ class ContainerTest extends TestCase
         $this->fixture->get($name);
     }
 
+    public function testRemoveUncache(): void
+    {
+        $name = uniqid();
+        $this->fixture->set($name, function () {
+            return new \stdClass();
+        });
+
+        $this->fixture->remove($name);
+
+        $message = 'Container entry "'.$name.'" not found.';
+        $this->expectException(NotFoundException::class);
+        $this->expectExceptionMessage($message);
+
+        $this->fixture->get($name);
+    }
+
     public function testRemoveNonExistentService(): void
     {
         try {
